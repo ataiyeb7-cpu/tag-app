@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tag Category Selector</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#4f46e5">
+  <style>
+    /* -------- Modern UI theme (stable base + dividers + smooth sections) -------- */
+    :root{
+      --bg:#f6f7fb;
+      --bg2:#eef2ff;
+      --card:#ffffff;
+      --card2:#fbfbff;
+      --text:#0f172a;
+      --muted:#64748b;
+      --border:rgba(15,23,42,.10);
+      --shadow:0 10px 30px rgba(2,6,23,.10);
+      --shadow2:0 2px 10px rgba(2,6,23,.08);
+      --accent:#4f46e5;
+      --accent2:#6366f1;
+      --danger:#dc2626;
+      --ring:rgba(99,102,241,.35);
+      --radius:16px;
+    }
+
+    body.dark{
+      --bg:#060814;
+      --bg2:#0b1026;
+      --card:#0b1224;
+      --card2:#0a1020;
+      --text:#e5e7eb;
+      --muted:#94a3b8;
+      --border:rgba(148,163,184,.18);
+      --shadow:0 18px 45px rgba(0,0,0,.45);
+      --shadow2:0 3px 14px rgba(0,0,0,.35);
+      --accent:#6366f1;
+      --accent2:#818cf8;
+      --ring:rgba(129,140,248,.35);
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      margin:0;
+      color:var(--text);
+      background: radial-gradient(1200px 800px at 15% -10%, var(--bg2), transparent 55%),
+                  radial-gradient(900px 600px at 90% 0%, rgba(99,102,241,.14), transparent 55%),
+                  var(--bg);
+      padding:14px;
+    }
+
+    .hidden{display:none !important;}
+
+    .app{max-width:1100px;margin:0 auto;}
+
+    .topbar{
+      position:sticky; top:0; z-index:50;
+      padding:12px;
+      border:1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,.86), rgba(255,255,255,.72));
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius:calc(var(--radius) + 2px);
+      box-shadow: var(--shadow2);
+      margin-bottom:12px;
+    }
+    body.dark .topbar{background: linear-gradient(180deg, rgba(11,18,36,.86), rgba(11,18,36,.72));}
+
+    .brand{display:flex;align-items:center;gap:10px;margin:0 0 10px;}
+    .logo{
+      width:38px;height:38px;border-radius:14px;
+      background: radial-gradient(16px 16px at 30% 30%, rgba(255,255,255,.55), transparent 60%),
+                  linear-gradient(135deg, var(--accent), var(--accent2));
+      box-shadow: 0 10px 18px rgba(79,70,229,.22);
+    }
+    .title{display:flex;flex-direction:column;line-height:1.1;}
+    .title strong{font-size:1.05rem;letter-spacing:.2px}
+    .title span{font-size:.78rem;color:var(--muted)}
+
+    .controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0 0;}
+
+    input,button,textarea,select{
+      font-size:.9rem;
+      padding:10px 10px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      outline: none;
+      transition: transform .06s ease, box-shadow .15s ease, border-color .15s ease, background .15s ease;
+    }
+    input:focus, textarea:focus, select:focus{box-shadow: 0 0 0 4px var(--ring); border-color: rgba(99,102,241,.55);}
+
+    textarea{width:100%;min-height:56px;resize:vertical;padding:10px 12px;}
+
+    button{
+      border:none;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color:#fff;
+      cursor:pointer;
+      box-shadow: 0 10px 18px rgba(79,70,229,.20);
+    }
+    button:hover{transform: translateY(-1px); box-shadow: 0 14px 22px rgba(79,70,229,.22)}
+    button:active{transform: translateY(0px); box-shadow: 0 8px 14px rgba(79,70,229,.18)}
+
+    button.secondary{background: linear-gradient(135deg, rgba(100,116,139,.95), rgba(71,85,105,.95)); box-shadow: 0 10px 18px rgba(2,6,23,.12);}
+    button.secondary:hover{box-shadow: 0 14px 22px rgba(2,6,23,.14)}
+
+    button.ghost{background: transparent; color: var(--text); border:1px solid var(--border); box-shadow:none;}
+    button.ghost:hover{background: rgba(99,102,241,.08)}
+
+    button.danger{background: linear-gradient(135deg, rgba(220,38,38,.98), rgba(239,68,68,.98)); box-shadow: 0 10px 18px rgba(220,38,38,.16);}
+
+    button:disabled{opacity:.55;cursor:not-allowed;transform:none;box-shadow:none;}
+
+    .spacer{flex:1}
+
+    .file-pill{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:999px;border:1px dashed var(--border);background: linear-gradient(180deg, var(--card), var(--card2));}
+    .file-pill b{font-size:.8rem;letter-spacing:.2px}
+    .file-pill input[type=file]{border:none;padding:0;background:transparent;max-width:220px}
+
+    .color-mini{width:40px;height:40px;padding:0;border-radius:14px;border:1px solid var(--border);background: transparent;overflow:hidden;}
+
+    .panel{background: linear-gradient(180deg, var(--card), var(--card2)); border-radius: var(--radius); padding:12px; margin:12px 0; border:1px solid var(--border); box-shadow: var(--shadow2);}
+    .panel-title{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+
+    .small{font-size:.8rem;color:var(--muted);line-height:1.4}
+
+    .chip{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;background: rgba(99,102,241,.10);border:1px solid rgba(99,102,241,.18);font-size:.75rem;}
+    body.dark .chip{background: rgba(129,140,248,.14);border-color: rgba(129,140,248,.22)}
+
+    .banner{position:sticky;top:92px;z-index:40;background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.78));backdrop-filter: blur(10px);-webkit-backdrop-filter: blur(10px);border-radius: var(--radius);padding:12px;margin:12px 0;box-shadow: var(--shadow);border:1px solid var(--border);}
+    body.dark .banner{background: linear-gradient(180deg, rgba(11,18,36,.92), rgba(11,18,36,.78));}
+
+    .toast{position:fixed;left:12px;right:12px;bottom:12px;z-index:999;background: linear-gradient(180deg, var(--card), var(--card2));border-radius: var(--radius);padding:12px;box-shadow: var(--shadow);border:1px solid var(--border);}
+
+    .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+    .section-title{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:14px 0 8px;}
+
+    /* Section dividers */
+    .section-divider{display:flex;align-items:center;gap:10px;margin:12px 0 10px;}
+    .section-divider::before,.section-divider::after{content:'';height:1px;flex:1;background:linear-gradient(90deg, transparent, var(--border), transparent);border-radius:999px;}
+    .section-divider .pill{padding:5px 10px;border-radius:999px;border:1px solid var(--border);background:linear-gradient(180deg, var(--card), var(--card2));font-size:.75rem;color:var(--muted);white-space:nowrap;}
+
+    /* Groups */
+    .group{background: linear-gradient(180deg, var(--card), var(--card2)); border-radius: calc(var(--radius) + 2px); padding:12px; margin-bottom:14px; border:1px solid var(--border); box-shadow: var(--shadow2);}
+    .group-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px;}
+    .group-left{display:flex;align-items:center;gap:10px;min-width:200px}
+
+    /* Categories */
+    .category{background: linear-gradient(180deg, rgba(255,255,255,.90), rgba(255,255,255,.78)); border-radius: var(--radius); padding:12px; margin:10px 0 0; border:1px solid var(--border); box-shadow: var(--shadow2);}
+    body.dark .category{background: linear-gradient(180deg, rgba(11,18,36,.92), rgba(11,18,36,.80));}
+    .category-header{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+    .cat-left{display:flex;align-items:center;gap:10px;min-width:220px}
+
+    .toggle{cursor:pointer;user-select:none;font-size:1rem;opacity:.9}
+    .stat{font-size:.8rem;color:var(--muted)}
+    .pin{font-size:.85rem;cursor:pointer;user-select:none;opacity:.9}
+
+    .tags{display:flex;flex-wrap:wrap;gap:8px}
+    .tag{padding:8px 12px;border-radius:999px;background: rgba(100,116,139,.18);border:1px solid rgba(100,116,139,.18);color: var(--text);cursor:pointer;font-size:.88rem;user-select:none;transition: transform .06s ease, box-shadow .12s ease, background .12s ease, border-color .12s ease;}
+    .tag:hover{transform: translateY(-1px); box-shadow: 0 10px 18px rgba(2,6,23,.10)}
+    body.dark .tag{background: rgba(148,163,184,.12);border-color: rgba(148,163,184,.16);color:#e5e7eb;}
+
+    .tag.selected{background: linear-gradient(135deg, var(--accent), var(--accent2)) !important; border-color: rgba(99,102,241,.32) !important; color:#fff !important;}
+    .tag.mark{background: linear-gradient(135deg, rgba(220,38,38,.98), rgba(239,68,68,.98)) !important; border-color: rgba(239,68,68,.30) !important; color:#fff !important;}
+
+    .locked{opacity:.65;pointer-events:none}
+
+    /* Smooth collapse/expand */
+    .group-body,.cat-body{overflow:hidden;max-height:5000px;opacity:1;transform:translateY(0);transition:max-height .28s ease, opacity .18s ease, transform .18s ease;}
+    .group.collapsed .group-body,.category.collapsed .cat-body{max-height:0;opacity:0;transform:translateY(-4px);pointer-events:none;}
+
+    .modal-scrim{position:fixed;inset:0;background:rgba(2,6,23,.55);z-index:900}
+    .modal{position:fixed;left:12px;right:12px;top:12px;z-index:901;max-height:85vh;overflow:auto}
+
+    @media (min-width: 760px){body{padding:18px}.topbar{padding:14px}}
+    @media (prefers-reduced-motion: reduce){*{transition:none !important}button:hover{transform:none}.tag:hover{transform:none}}
+  
+    /* ---------- Collapsible top bar (mobile-friendly) ---------- */
+    .topbar-header{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+    .topbar-header .brand{margin:0}
+    .topbar-toggle{white-space:nowrap}
+    .topbar-body{margin-top:10px}
+    .topbar.collapsed{padding:10px}
+    .topbar.collapsed .topbar-body{display:none}
+    .topbar.collapsed + #deleteBanner.banner{top:70px} /* keep banner below smaller topbar when collapsed */
+
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar" id="topbar">
+    <div class="topbar-header">
+    <div class="brand">
+      <div class="logo" aria-hidden="true"></div>
+      <div class="title">
+        <strong>Tag Category Selector</strong>
+        <span>Fast tagging • groups • export • undo/redo</span>
+      </div>
+    </div>
+      <button class="ghost topbar-toggle" id="topbarToggleBtn" onclick="toggleTopbar()">Close</button>
+    </div>
+    <div class="topbar-body" id="topbarBody">
+
+    <div class="controls">
+      <input id="newCategoryName" placeholder="New category" style="min-width:220px">
+      <input type="color" id="newCategoryColor" title="Category color" class="color-mini">
+      <button onclick="addCategory()">Add Category</button>
+      <button class="secondary" onclick="toggleDark()">Dark</button>
+      <button class="secondary" onclick="toggleRegexHelp()">Regex Help</button>
+      <button onclick="toggleAIPanel()">AI Grouping</button>
+      <span class="spacer"></span>
+      <button class="ghost" onclick="undoStep()" id="undoBtn">Undo</button>
+      <button class="ghost" onclick="redoStep()" id="redoBtn">Redo</button>
+    </div>
+
+    <div class="controls">
+      <span class="small" style="margin-right:6px">Import</span>
+      <label class="file-pill small"><b>.txt</b><input type="file" accept=".txt" onchange="loadTxt(event)"></label>
+      <label class="file-pill small"><b>.json</b><input type="file" accept=".json" onchange="importJSON(event)"></label>
+      <span class="spacer"></span>
+      <button class="secondary" onclick="exportJSON()">Export JSON (All)</button>
+      <button class="secondary" onclick="exportAllTXT()">Export TXT (All)</button>
+    </div>
+
+    <div class="controls">
+      <input id="search" placeholder="Search" oninput="render()" style="min-width:180px">
+      <input id="regex" placeholder="Regex" oninput="render()" style="min-width:160px">
+      <button class="ghost" onclick="collapseAll()">Collapse All</button>
+      <button class="ghost" onclick="expandAll()">Expand All</button>
+      <button class="secondary" onclick="deselectAll()">Deselect All</button>
+      <button class="danger" onclick="toggleDeleteMode()" id="multiDeleteBtn">Multi-Delete</button>
+    </div>
+    </div>
+  </div>
+
+  <div id="deleteBanner" class="banner hidden">
+    <div class="row">
+      <strong>Multi-delete mode is ON</strong>
+      <span class="small">Tap tags to mark them red. Then delete or cancel.</span>
+      <span class="spacer"></span>
+      <span class="small" id="markedCount">0 marked</span>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button class="danger" onclick="commitMultiDelete()">Delete Marked</button>
+      <button class="secondary" onclick="cancelMultiDelete()">Cancel</button>
+    </div>
+  </div>
+
+  <div id="regexHelp" class="panel hidden">
+    <div class="panel-title">
+      <strong>Regex Cheat Sheet</strong>
+      <button class="secondary" onclick="toggleRegexHelp()">Close</button>
+    </div>
+    <div class="small" style="margin-top:10px">Regex filters by pattern. Leave blank if you don’t need it.</div>
+    <div style="margin-top:10px">
+      <span class="chip">^cat</span> starts with “cat”
+      <br><span class="chip">ing$</span> ends with “ing”
+      <br><span class="chip">cat|dog</span> cat <em>or</em> dog
+      <br><span class="chip">^[0-9]</span> starts with a number
+      <br><span class="chip">^[a-zA-Z]+$</span> only letters
+      <br><span class="chip">^.{5}$</span> exactly 5 characters
+    </div>
+    <div class="small" style="margin-top:10px">Search + Regex both apply (tags must pass both).</div>
+  </div>
+
+  <div id="aiPanel" class="panel hidden">
+    <div class="panel-title">
+      <strong>AI Tag Grouping</strong>
+      <button class="secondary" onclick="toggleAIPanel()">Close</button>
+    </div>
+    <div class="small" style="margin-top:10px"><b>Hybrid mode:</b> Offline grouping runs on-device. Online AI only runs if you enable it.</div>
+    <div class="row" style="margin-top:10px">
+      <label class="small" style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="aiEnabledToggle" onchange="setAIEnabled(this.checked)">Enable Online AI (privacy toggle)</label>
+      <span class="spacer"></span>
+      <label class="small" style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="autoCollapseToggle" onchange="setAutoCollapse(this.checked)">Auto-collapse category after selecting a tag</label>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button onclick="runOfflineGrouping()">Run Offline Grouping</button>
+      <button class="secondary" onclick="runOnlineGrouping()">Refine with AI (Online)</button>
+    </div>
+    <div id="aiResults" style="margin-top:10px"></div>
+  </div>
+
+  <div id="modalScrim" class="modal-scrim hidden" onclick="closeGroupManager()"></div>
+  <div id="groupManager" class="panel modal hidden">
+    <div class="panel-title">
+      <strong id="gmTitle">Manage Categories</strong>
+      <button class="secondary" onclick="closeGroupManager()">Close</button>
+    </div>
+    <div class="small" style="margin-top:10px">Pick a category from the dropdown. Categories already in the group are marked with ✓.</div>
+    <div class="row" style="margin-top:10px">
+      <select id="gmSelect" style="min-width:240px" onchange="gmPick()"></select>
+      <button class="secondary" onclick="gmRefresh()">Refresh</button>
+    </div>
+    <div class="small" style="margin-top:12px" id="gmCurrent"></div>
+  </div>
+
+  <div id="content"></div>
+
+  <div class="section-title" style="margin-top:16px">
+    <strong>All Selected Tags</strong>
+    <span class="small">Tap to select; copy from the box.</span>
+  </div>
+  <textarea id="globalOutput" readonly></textarea>
+
+  <datalist id="tagSuggestions"></datalist>
+
+  <div id="toast" class="toast hidden">
+    <div class="row">
+      <div>
+        <strong id="toastMsg">Done.</strong>
+        <div class="small" id="toastSub"></div>
+      </div>
+      <span class="spacer"></span>
+      <button class="secondary" onclick="hideToast()">OK</button>
+    </div>
+  </div>
+</div>
+
+<script>
+if('serviceWorker' in navigator){
+  // Cache-bust SW URL so GitHub Pages deploys don't get stuck on an old cached shell
+  navigator.serviceWorker.register('sw.js?v=20251228_1').then(reg=>{
+    try{ reg.update(); }catch{}
+  });
+}
+
+// ---- Compatibility helpers (fixes "buttons do nothing" on older mobile browsers) ----
+// structuredClone is not available on some Safari/iOS versions; without this the whole script stops.
+const deepClone = (typeof structuredClone === 'function')
+  ? (v)=>structuredClone(v)
+  : (v)=>JSON.parse(JSON.stringify(v));
+
+// replaceAll polyfill (very old browsers)
+if(!String.prototype.replaceAll){
+  // eslint-disable-next-line no-extend-native
+  String.prototype.replaceAll=function(search, replacement){
+    return this.split(search).join(replacement);
+  };
+}
+
+// Basic on-screen error surface (so failures aren't silent)
+window.addEventListener('error', (e)=>{
+  try{
+    const div=document.createElement('div');
+    div.className='banner';
+    div.innerHTML=`<div class="row"><strong>App error:</strong><span class="small">${(e.message||'Unknown error')}</span></div>`;
+    document.querySelector('.app')?.prepend(div);
+  }catch{}
+});
+
+// ---------- State (v2) ----------
+const STORAGE_KEY='tagAppStateV2';
+
+let state=loadState();
+let selected=new Set(state.ui.selected || []);
+let deleteMode=false;
+let deleteMarks=new Map(); // catId -> Set(tag)
+let gmGroupId=null;
+
+// History (undo/redo up to 25)
+if(!state.ui.history){state.ui.history=[];state.ui.historyIndex=0;}
+initHistoryIfNeeded();
+
+function uid(){return 'id_'+Math.random().toString(16).slice(2)+Date.now().toString(16)}
+
+function loadState(){
+  const raw=localStorage.getItem(STORAGE_KEY);
+  if(raw){
+    try{const s=JSON.parse(raw);return normalizeState(s)}catch{}
+  }
+  // Migrate from legacy keys
+  const legacyData=JSON.parse(localStorage.getItem('tagData')||'{}');
+  const legacyColors=JSON.parse(localStorage.getItem('tagColors')||'{}');
+  const legacyLocks=JSON.parse(localStorage.getItem('tagLocks')||'{}');
+  const legacyPins=JSON.parse(localStorage.getItem('tagPins')||'{}');
+  const legacyUsage=JSON.parse(localStorage.getItem('tagUsage')||'{}');
+  const legacyDark=localStorage.getItem('darkMode')==='1';
+  const legacyCollapsed=JSON.parse(localStorage.getItem('collapsedCats')||'{}');
+  const legacyAI=localStorage.getItem('aiEnabled')==='1';
+
+  const categories={};
+  Object.keys(legacyData).forEach(name=>{
+    const id=uid();
+    categories[id]={
+      id,
+      name,
+      color: legacyColors[name] || '#4f46e5',
+      tags: Array.isArray(legacyData[name]) ? legacyData[name] : [],
+      locked: !!legacyLocks[name],
+      pinned: !!legacyPins[name],
+      collapsed: !!legacyCollapsed[name],
+      createdAt: Date.now(),
+    };
+  });
+
+  const usage=[];
+  Object.values(legacyUsage||{}).forEach(u=>{ if(u && u.tag && u.cat && u.time) usage.push({tag:u.tag, catName:u.cat, time:u.time}); });
+
+  const s={
+    version:2,
+    categories,
+    groups:{},
+    usage,
+    ui:{
+      dark: legacyDark,
+      aiEnabled: legacyAI,
+      autoCollapseOnSelect:false,
+      selected: [],
+      history: [],
+      historyIndex: 0,
+    }
+  };
+  return normalizeState(s);
+}
+
+function normalizeState(s){
+  if(!s || typeof s!=='object') s={};
+  if(!s.version) s.version=2;
+  if(!s.categories) s.categories={};
+  if(!s.groups) s.groups={};
+  if(!Array.isArray(s.usage)) s.usage=[];
+  if(!s.ui) s.ui={};
+  if(!Array.isArray(s.ui.selected)) s.ui.selected=[];
+  if(typeof s.ui.dark!=='boolean') s.ui.dark=false;
+  if(typeof s.ui.aiEnabled!=='boolean') s.ui.aiEnabled=false;
+  if(typeof s.ui.autoCollapseOnSelect!=='boolean') s.ui.autoCollapseOnSelect=false;
+  if(!Array.isArray(s.ui.history)) s.ui.history=[];
+  if(typeof s.ui.historyIndex!=='number') s.ui.historyIndex=0;
+  return s;
+}
+
+function snapshot(){
+  return {
+    version: state.version,
+    categories: deepClone(state.categories),
+    groups: deepClone(state.groups),
+    usage: deepClone(state.usage),
+    ui: {
+      dark: state.ui.dark,
+      aiEnabled: state.ui.aiEnabled,
+      autoCollapseOnSelect: state.ui.autoCollapseOnSelect,
+      selected: [...selected],
+    }
+  };
+}
+
+function applySnapshot(snap){
+  state.version=snap.version||2;
+  state.categories=snap.categories||{};
+  state.groups=snap.groups||{};
+  state.usage=Array.isArray(snap.usage)?snap.usage:[];
+  state.ui.dark=!!snap.ui?.dark;
+  state.ui.aiEnabled=!!snap.ui?.aiEnabled;
+  state.ui.autoCollapseOnSelect=!!snap.ui?.autoCollapseOnSelect;
+  selected=new Set(snap.ui?.selected||[]);
+}
+
+function initHistoryIfNeeded(){
+  if(!state.ui.history.length){
+    state.ui.history=[snapshot()];
+    state.ui.historyIndex=0;
+    saveState();
+  }
+}
+
+function commitHistory(){
+  state.ui.history=state.ui.history.slice(0, state.ui.historyIndex+1);
+  state.ui.history.push(snapshot());
+  if(state.ui.history.length>25){
+    state.ui.history.shift();
+  } else {
+    state.ui.historyIndex++;
+  }
+  state.ui.historyIndex=Math.min(state.ui.historyIndex, state.ui.history.length-1);
+}
+
+function undoStep(){
+  if(state.ui.historyIndex<=0) return;
+  state.ui.historyIndex--;
+  applySnapshot(state.ui.history[state.ui.historyIndex]);
+  saveState(false);
+  render();
+}
+
+function redoStep(){
+  if(state.ui.historyIndex>=state.ui.history.length-1) return;
+  state.ui.historyIndex++;
+  applySnapshot(state.ui.history[state.ui.historyIndex]);
+  saveState(false);
+  render();
+}
+
+function saveState(){
+  state.ui.selected=[...selected];
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  localStorage.setItem('darkMode', state.ui.dark?'1':'0');
+  try{
+    undoBtn.disabled = state.ui.historyIndex<=0;
+    redoBtn.disabled = state.ui.historyIndex>=state.ui.history.length-1;
+  }catch{}
+}
+
+function mutate(fn){
+  fn();
+  commitHistory();
+  saveState();
+  render();
+}
+
+// ---------- Theme ----------
+function applyTheme(){
+  if(state.ui.dark) document.body.classList.add('dark');
+  else document.body.classList.remove('dark');
+}
+function toggleDark(){mutate(()=>{state.ui.dark=!state.ui.dark;});}
+
+
+// ---------- Collapsible Topbar ----------
+function setTopbar(open){
+  const bar=document.getElementById('topbar');
+  const btn=document.getElementById('topbarToggleBtn');
+  if(!bar || !btn) return;
+  bar.classList.toggle('collapsed', !open);
+  btn.textContent=open?'Close':'Open';
+  try{localStorage.setItem('topbarOpen', open?'1':'0');}catch{}
+}
+function toggleTopbar(){
+  const bar=document.getElementById('topbar');
+  if(!bar) return;
+  const open=!bar.classList.contains('collapsed');
+  setTopbar(!open);
+}
+function initTopbar(){
+  // Default: open on desktop, collapsed on small screens, remember preference
+  let open=true;
+  try{
+    const saved=localStorage.getItem('topbarOpen');
+    if(saved==='1') open=true;
+    else if(saved==='0') open=false;
+    else open = window.matchMedia('(min-width: 760px)').matches;
+  }catch{
+    open = window.matchMedia('(min-width: 760px)').matches;
+  }
+  setTopbar(open);
+}
+
+
+// ---------- Toast ----------
+function showToast(msg, sub){
+  toastMsg.textContent=msg;
+  toastSub.textContent=sub||'';
+  toast.classList.remove('hidden');
+}
+function hideToast(){toast.classList.add('hidden');}
+
+// ---------- Top-level actions ----------
+function deselectAll(){mutate(()=>{selected.clear();});}
+function collapseAll(){mutate(()=>{Object.values(state.categories).forEach(c=>c.collapsed=true);Object.values(state.groups).forEach(g=>g.collapsed=true);});}
+function expandAll(){mutate(()=>{Object.values(state.categories).forEach(c=>c.collapsed=false);Object.values(state.groups).forEach(g=>g.collapsed=false);});}
+
+// ---------- Category CRUD ----------
+function addCategory(){
+  const name=newCategoryName.value.trim();
+  if(!name) return;
+  if(Object.values(state.categories).some(c=>c.name.toLowerCase()===name.toLowerCase())){alert('A category with that name already exists.');return;}
+  mutate(()=>{
+    const id=uid();
+    state.categories[id]={id,name,color:newCategoryColor.value||'#4f46e5',tags:[],locked:false,pinned:false,collapsed:false,createdAt:Date.now()};
+    newCategoryName.value='';
+  });
+}
+
+function confirmDeleteCategory(catId){
+  const cat=state.categories[catId];
+  if(!cat) return;
+  const msg=`Delete category "${cat.name}"?\n\nThis deletes the category AND its tags.`;
+  if(!confirm(msg)) return;
+  mutate(()=>{
+    const groupId=findGroupOfCategory(catId);
+    if(groupId){
+      const g=state.groups[groupId];
+      g.categoryIds=g.categoryIds.filter(id=>id!==catId);
+    }
+    delete state.categories[catId];
+    state.usage=state.usage.filter(u=>u.catId!==catId);
+    deleteMarks.delete(catId);
+  });
+  showToast('Category deleted.', 'Use Undo to restore.');
+}
+
+function renameCategory(catId){
+  const cat=state.categories[catId];
+  if(!cat) return;
+  const next=prompt('Rename category:', cat.name);
+  if(!next) return;
+  const trimmed=next.trim();
+  if(!trimmed || trimmed===cat.name) return;
+  if(Object.values(state.categories).some(c=>c.id!==catId && c.name.toLowerCase()===trimmed.toLowerCase())){alert('A category with that name already exists.');return;}
+  mutate(()=>{cat.name=trimmed;});
+}
+
+function toggleCatCollapse(catId){mutate(()=>{const cat=state.categories[catId];if(cat) cat.collapsed=!cat.collapsed;});}
+function togglePin(catId){mutate(()=>{const cat=state.categories[catId];if(cat) cat.pinned=!cat.pinned;});}
+function toggleLock(catId){mutate(()=>{const cat=state.categories[catId];if(cat) cat.locked=!cat.locked;});}
+
+function recolorCategoryFromInput(catId, hex){
+  const cat=state.categories[catId];
+  if(!cat) return;
+  mutate(()=>{cat.color=hex;});
+}
+
+function recolorGroupFromInput(groupId, hex){
+  const g=state.groups[groupId];
+  if(!g) return;
+  mutate(()=>{g.color=hex;});
+}
+
+function addTag(catId, tag){
+  const cat=state.categories[catId];
+  if(!cat || cat.locked) return;
+  const t=(tag||'').trim();
+  if(!t) return;
+  mutate(()=>{cat.tags.push(t);});
+}
+
+function deselectCategory(catId){
+  const cat=state.categories[catId];
+  if(!cat) return;
+  mutate(()=>{cat.tags.forEach(t=>selected.delete(t));});
+}
+
+function selectAllCategory(catId){
+  const cat=state.categories[catId];
+  if(!cat) return;
+  mutate(()=>{cat.tags.forEach(t=>selected.add(t));});
+}
+
+// ---------- Grouping ----------
+function createGroup(){
+  const name=prompt('Group name:','');
+  if(!name) return;
+  const trimmed=name.trim();
+  if(!trimmed) return;
+  mutate(()=>{
+    const id=uid();
+    state.groups[id]={id,name:trimmed,color:'#4f46e5',collapsed:false,categoryIds:[],createdAt:Date.now()};
+  });
+}
+
+function renameGroup(groupId){
+  const g=state.groups[groupId];
+  if(!g) return;
+  const next=prompt('Rename group:', g.name);
+  if(!next) return;
+  const trimmed=next.trim();
+  if(!trimmed) return;
+  mutate(()=>{g.name=trimmed;});
+}
+
+function toggleGroupCollapse(groupId){mutate(()=>{const g=state.groups[groupId];if(g) g.collapsed=!g.collapsed;});}
+
+function deleteGroup(groupId){
+  const g=state.groups[groupId];
+  if(!g) return;
+  if(!confirm(`Delete group "${g.name}"?`)) return;
+  const choice=prompt('Type 1 to delete ONLY the group, or type 2 to delete the group + ALL its categories.','1');
+  if(choice!=='1' && choice!=='2') return;
+
+  if(choice==='1'){
+    mutate(()=>{delete state.groups[groupId];});
+    showToast('Group deleted.', 'Categories were kept. Use Undo to restore.');
+    return;
+  }
+
+  if(!confirm('This will permanently delete ALL categories in the group. Are you sure?')) return;
+  mutate(()=>{
+    const ids=[...(g.categoryIds||[])];
+    ids.forEach(id=>{delete state.categories[id];});
+    delete state.groups[groupId];
+  });
+  showToast('Group + categories deleted.', 'Use Undo to restore.');
+}
+
+function findGroupOfCategory(catId){
+  for(const g of Object.values(state.groups)){
+    if((g.categoryIds||[]).includes(catId)) return g.id;
+  }
+  return null;
+}
+
+// Dropdown manager
+function openGroupManager(groupId){
+  gmGroupId=groupId;
+  modalScrim.classList.remove('hidden');
+  groupManager.classList.remove('hidden');
+  gmRefresh();
+}
+function closeGroupManager(){
+  gmGroupId=null;
+  modalScrim.classList.add('hidden');
+  groupManager.classList.add('hidden');
+}
+function gmRefresh(){
+  const g=state.groups[gmGroupId];
+  if(!g){closeGroupManager();return;}
+  gmTitle.textContent=`Manage Categories — ${g.name}`;
+
+  const cats=Object.values(state.categories).sort((a,b)=>a.name.localeCompare(b.name));
+  gmSelect.innerHTML='';
+
+  const placeholder=document.createElement('option');
+  placeholder.value='';
+  placeholder.textContent='Select a category…';
+  gmSelect.appendChild(placeholder);
+
+  cats.forEach(c=>{
+    const inGroup=(g.categoryIds||[]).includes(c.id);
+    const opt=document.createElement('option');
+    opt.value=c.id;
+    opt.textContent=(inGroup?'✓ ':'')+c.name;
+    gmSelect.appendChild(opt);
+  });
+
+  const current=(g.categoryIds||[]).map(id=>state.categories[id]?.name).filter(Boolean);
+  gmCurrent.textContent=`Current in group: ${current.join(', ')||'(none)'}`;
+  gmSelect.value='';
+}
+
+function gmPick(){
+  const catId=gmSelect.value;
+  if(!catId) return;
+  const g=state.groups[gmGroupId];
+  const c=state.categories[catId];
+  if(!g || !c) return;
+  const inGroup=(g.categoryIds||[]).includes(catId);
+  if(inGroup){
+    if(!confirm(`Remove "${c.name}" from group "${g.name}"?`)){gmSelect.value='';return;}
+    mutate(()=>{g.categoryIds=g.categoryIds.filter(id=>id!==catId);});
+    showToast('Removed from group.', '');
+  } else {
+    if(!confirm(`Add "${c.name}" to group "${g.name}"?`)){gmSelect.value='';return;}
+    mutate(()=>{g.categoryIds=[...(g.categoryIds||[]), catId];});
+    showToast('Added to group.', '');
+  }
+  gmRefresh();
+}
+
+function selectAllInGroup(groupId){
+  const g=state.groups[groupId];
+  if(!g) return;
+  mutate(()=>{g.categoryIds.forEach(id=>{const cat=state.categories[id];if(cat) cat.tags.forEach(t=>selected.add(t));});});
+}
+function deselectAllInGroup(groupId){
+  const g=state.groups[groupId];
+  if(!g) return;
+  mutate(()=>{g.categoryIds.forEach(id=>{const cat=state.categories[id];if(cat) cat.tags.forEach(t=>selected.delete(t));});});
+}
+
+// ---------- Multi-delete ----------
+function toggleDeleteMode(){
+  deleteMode=!deleteMode;
+  deleteMarks.clear();
+  updateDeleteUI();
+  render();
+}
+function updateDeleteUI(){
+  multiDeleteBtn.textContent=deleteMode?'Multi-Delete (ON)':'Multi-Delete';
+  deleteBanner.classList.toggle('hidden', !deleteMode);
+  updateMarkedCount();
+}
+function updateMarkedCount(){
+  let n=0;
+  for(const set of deleteMarks.values()) n+=set.size;
+  markedCount.textContent=`${n} marked`;
+}
+function commitMultiDelete(){
+  mutate(()=>{
+    for(const [catId,set] of deleteMarks.entries()){
+      const cat=state.categories[catId];
+      if(!cat || cat.locked) continue;
+      cat.tags=cat.tags.filter(t=>!set.has(t));
+      set.forEach(t=>selected.delete(t));
+    }
+  });
+  deleteMode=false;
+  deleteMarks.clear();
+  updateDeleteUI();
+  showToast('Tags deleted.', 'Use Undo to restore.');
+}
+function cancelMultiDelete(){
+  deleteMode=false;
+  deleteMarks.clear();
+  updateDeleteUI();
+  render();
+}
+
+// ---------- Import / Export ----------
+function loadTxt(e){
+  const f=e.target.files[0];
+  if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{
+    const lines=r.result.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+    const catName=prompt('Which category should these tags go into?');
+    if(!catName) return;
+    const name=catName.trim();
+
+    let cat=Object.values(state.categories).find(c=>c.name.toLowerCase()===name.toLowerCase());
+    mutate(()=>{
+      if(!cat){
+        const id=uid();
+        cat={id,name,color:newCategoryColor.value||'#4f46e5',tags:[],locked:false,pinned:false,collapsed:false,createdAt:Date.now()};
+        state.categories[id]=cat;
+      }
+      cat.tags.push(...lines);
+    });
+  };
+  r.readAsText(f);
+}
+
+function exportAllTXT(){
+  let o='';
+  Object.values(state.categories).sort((a,b)=>a.name.localeCompare(b.name)).forEach(c=>{
+    o+=`# ${c.name}\n`+c.tags.join('\n')+'\n\n';
+  });
+  download('tags.txt',o);
+}
+
+function exportJSON(){download('tags-backup.json', JSON.stringify(state,null,2));}
+
+function importJSON(e){
+  const f=e.target.files[0];
+  if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{
+    const j=JSON.parse(r.result);
+    state=normalizeState(j);
+    selected=new Set(state.ui.selected||[]);
+    if(!state.ui.history){state.ui.history=[];state.ui.historyIndex=0;}
+    initHistoryIfNeeded();
+    saveState();
+    render();
+  };
+  r.readAsText(f);
+}
+
+function exportCategoryTXT(catId){
+  const cat=state.categories[catId];
+  if(!cat) return;
+  download(`${safeFile(cat.name)}.txt`, cat.tags.join('\n'));
+}
+
+function exportCategoryJSON(catId){
+  const cat=state.categories[catId];
+  if(!cat) return;
+  const payload={version:2,categories:{[cat.id]:cat},groups:{},usage:state.usage.filter(u=>u.catId===cat.id),ui:{...state.ui,selected:[]}};
+  download(`${safeFile(cat.name)}.json`, JSON.stringify(payload,null,2));
+}
+
+function exportGroupTXT(groupId){
+  const g=state.groups[groupId];
+  if(!g) return;
+  let o=`# Group: ${g.name}\n\n`;
+  (g.categoryIds||[]).forEach(id=>{
+    const c=state.categories[id];
+    if(!c) return;
+    o+=`# ${c.name}\n`+c.tags.join('\n')+'\n\n';
+  });
+  download(`${safeFile(g.name)}.txt`, o);
+}
+
+function exportGroupJSON(groupId){
+  const g=state.groups[groupId];
+  if(!g) return;
+  const cats={};
+  (g.categoryIds||[]).forEach(id=>{ if(state.categories[id]) cats[id]=state.categories[id]; });
+  const payload={version:2,categories:cats,groups:{[g.id]:g},usage:state.usage,ui:{...state.ui,selected:[]}};
+  download(`${safeFile(g.name)}.json`, JSON.stringify(payload,null,2));
+}
+
+function download(name, text){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([text]));
+  a.download=name;
+  a.click();
+}
+
+function safeFile(name){return name.replace(/[^a-z0-9\- _]/gi,'_').slice(0,80);}
+
+// ---------- Panels / Settings ----------
+function toggleRegexHelp(){regexHelp.classList.toggle('hidden');}
+function toggleAIPanel(){
+  aiPanel.classList.toggle('hidden');
+  aiEnabledToggle.checked=state.ui.aiEnabled;
+  autoCollapseToggle.checked=state.ui.autoCollapseOnSelect;
+}
+function setAIEnabled(v){mutate(()=>{state.ui.aiEnabled=!!v;});}
+function setAutoCollapse(v){mutate(()=>{state.ui.autoCollapseOnSelect=!!v;});}
+
+// ---------- AI (offline demo + online hook) ----------
+function runOfflineGrouping(){
+  const out=document.getElementById('aiResults');
+  out.innerHTML='';
+  const allTags=Object.values(state.categories).flatMap(c=>c.tags);
+  if(allTags.length===0){out.innerHTML='<div class="small">No tags found to group.</div>';return;}
+
+  const groups={};
+  for(const t of allTags){
+    const root=t.split(/[_-]/)[0].toLowerCase();
+    if(!root) continue;
+    (groups[root]=groups[root]||[]).push(t);
+  }
+
+  const keys=Object.keys(groups).filter(k=>groups[k].length>=2).sort((a,b)=>groups[b].length-groups[a].length);
+  if(!keys.length){out.innerHTML='<div class="small">No strong offline groups found (need ≥2 tags sharing a root).</div>';return;}
+
+  keys.slice(0,20).forEach(k=>{
+    const div=document.createElement('div');
+    div.className='panel';
+    div.style.boxShadow='none';
+    div.style.border='1px solid var(--border)';
+    const sample=groups[k].slice(0,14);
+    div.innerHTML=`
+      <div class="row">
+        <strong>Suggested category: ${escapeHtml(k)}</strong>
+        <span class="spacer"></span>
+        <button class="secondary" onclick="copyText('${escapeAttr(sample.join(', '))}')">Copy</button>
+        <button onclick="createCategoryFromSuggestion('${escapeAttr(k)}')">Create Category</button>
+      </div>
+      <div class="small" style="margin-top:8px">${sample.map(escapeHtml).join(', ')}${groups[k].length>sample.length?' …':''}</div>
+    `;
+    out.appendChild(div);
+  });
+}
+
+function runOnlineGrouping(){
+  if(!state.ui.aiEnabled){alert('Online AI is disabled for privacy. Enable it in the toggle first.');return;}
+  alert('Online AI hook: call embeddings API, cluster results, show approve/reject + Undo via Undo/Redo.');
+}
+
+function copyText(t){
+  const text=String(t);
+  navigator.clipboard?.writeText(text).then(()=>showToast('Copied.', '')).catch(()=>alert(text));
+}
+
+function createCategoryFromSuggestion(name){
+  const n=String(name||'').trim();
+  if(!n) return;
+  if(Object.values(state.categories).some(c=>c.name.toLowerCase()===n.toLowerCase())){alert('Category already exists');return;}
+  mutate(()=>{
+    const id=uid();
+    state.categories[id]={id,name:n,color:newCategoryColor.value||'#4f46e5',tags:[],locked:false,pinned:false,collapsed:false,createdAt:Date.now()};
+  });
+  showToast('Category created.', '');
+}
+
+function escapeHtml(str){
+  return String(str)
+    .replaceAll('&','&amp;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;')
+    .replaceAll('"','&quot;')
+    .replaceAll("'",'&#39;');
+}
+function escapeAttr(str){return escapeHtml(str).replaceAll('&#39;','\\\'');}
+
+// ---------- Rendering ----------
+function rebuildDatalist(){
+  const all=[...new Set(Object.values(state.categories).flatMap(c=>c.tags))].sort();
+  tagSuggestions.innerHTML='';
+  all.forEach(t=>{
+    const o=document.createElement('option');
+    o.value=t;
+    tagSuggestions.appendChild(o);
+  });
+}
+
+function render(){
+  applyTheme();
+  rebuildDatalist();
+
+  const s=(search.value||'').toLowerCase();
+  let rx=null;try{ if(regex.value) rx=new RegExp(regex.value,'i'); }catch{}
+
+  globalOutput.value=[...selected].join(', ');
+
+  const root=document.getElementById('content');
+  root.innerHTML='';
+
+  const groupHeader=document.createElement('div');
+  groupHeader.className='section-title';
+  groupHeader.innerHTML=`<strong>Groups</strong><span class="small">Organize categories into collapsible groups.</span>`;
+  root.appendChild(groupHeader);
+
+  const groupDivider=document.createElement('div');
+  groupDivider.className='section-divider';
+  groupDivider.innerHTML=`<span class="pill">Groups</span>`;
+  root.appendChild(groupDivider);
+
+  const groupControls=document.createElement('div');
+  groupControls.className='controls';
+  const createBtn=document.createElement('button');
+  createBtn.textContent='Create Group';
+  createBtn.onclick=createGroup;
+  groupControls.appendChild(createBtn);
+  root.appendChild(groupControls);
+
+  const groups=Object.values(state.groups).sort((a,b)=>a.name.localeCompare(b.name));
+  groups.forEach(g=>root.appendChild(renderGroup(g, s, rx)));
+
+  const ungHeader=document.createElement('div');
+  ungHeader.className='section-title';
+  ungHeader.innerHTML=`<strong>Ungrouped Categories</strong><span class="small">Categories not assigned to any group.</span>`;
+  root.appendChild(ungHeader);
+
+  const ungDivider=document.createElement('div');
+  ungDivider.className='section-divider';
+  ungDivider.innerHTML=`<span class="pill">Ungrouped</span>`;
+  root.appendChild(ungDivider);
+
+  const groupedIds=new Set(groups.flatMap(g=>g.categoryIds||[]));
+
+  const cats=Object.values(state.categories)
+    .filter(c=>!groupedIds.has(c.id))
+    .sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0) || a.name.localeCompare(b.name));
+
+  cats.forEach(c=>root.appendChild(renderCategory(c, s, rx)));
+
+  updateDeleteUI();
+  saveState();
+}
+
+function renderGroup(g, s, rx){
+  const wrap=document.createElement('div');
+  wrap.className='group'+(g.collapsed?' collapsed':'');
+  wrap.style.borderLeft=`10px solid ${g.color||'#4f46e5'}`;
+
+  const head=document.createElement('div');
+  head.className='group-head';
+
+  const left=document.createElement('div');
+  left.className='group-left';
+
+  const togg=document.createElement('span');
+  togg.className='toggle';
+  togg.textContent=g.collapsed?'▶':'▼';
+  togg.title='Collapse/expand group';
+  togg.onclick=()=>toggleGroupCollapse(g.id);
+
+  const title=document.createElement('strong');
+  title.textContent=g.name;
+
+  const colorInput=document.createElement('input');
+  colorInput.type='color';
+  colorInput.className='color-mini';
+  colorInput.title='Group color';
+  colorInput.value=g.color||'#4f46e5';
+  colorInput.oninput=(e)=>recolorGroupFromInput(g.id, e.target.value);
+
+  left.append(togg,title,colorInput);
+
+  const right=document.createElement('div');
+  right.className='row';
+
+  const manage=document.createElement('button');
+  manage.className='secondary';
+  manage.textContent='Manage Categories';
+  manage.onclick=()=>openGroupManager(g.id);
+
+  const selAll=document.createElement('button');
+  selAll.className='ghost';
+  selAll.textContent='Select All Tags';
+  selAll.onclick=()=>selectAllInGroup(g.id);
+
+  const deselAll=document.createElement('button');
+  deselAll.className='ghost';
+  deselAll.textContent='Deselect All Tags';
+  deselAll.onclick=()=>deselectAllInGroup(g.id);
+
+  const expTxt=document.createElement('button');
+  expTxt.className='secondary';
+  expTxt.textContent='Export TXT';
+  expTxt.onclick=()=>exportGroupTXT(g.id);
+
+  const expJson=document.createElement('button');
+  expJson.className='secondary';
+  expJson.textContent='Export JSON';
+  expJson.onclick=()=>exportGroupJSON(g.id);
+
+  const rename=document.createElement('button');
+  rename.className='ghost';
+  rename.textContent='Rename';
+  rename.onclick=()=>renameGroup(g.id);
+
+  const del=document.createElement('button');
+  del.className='danger';
+  del.textContent='Delete Group';
+  del.onclick=()=>deleteGroup(g.id);
+
+  right.append(manage, selAll, deselAll, expTxt, expJson, rename, del);
+
+  head.append(left,right);
+  wrap.appendChild(head);
+
+  const body=document.createElement('div');
+  body.className='group-body';
+
+  const cats=(g.categoryIds||[])
+    .map(id=>state.categories[id])
+    .filter(Boolean)
+    .sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0) || a.name.localeCompare(b.name));
+
+  if(!cats.length){
+    const empty=document.createElement('div');
+    empty.className='small';
+    empty.textContent='No categories in this group yet. Use “Manage Categories” to add some.';
+    body.appendChild(empty);
+  } else {
+    cats.forEach(c=>body.appendChild(renderCategory(c, s, rx, g.color)));
+  }
+
+  wrap.appendChild(body);
+  return wrap;
+}
+
+function renderCategory(c, s, rx, groupColor){
+  const box=document.createElement('div');
+  box.className='category'+(c.collapsed?' collapsed':'');
+  box.style.borderLeft=`8px solid ${c.color||groupColor||'#4f46e5'}`;
+
+  const h=document.createElement('div');
+  h.className='category-header';
+
+  const left=document.createElement('div');
+  left.className='cat-left';
+
+  const togg=document.createElement('span');
+  togg.className='toggle';
+  togg.textContent=c.collapsed?'▶':'▼';
+  togg.title='Collapse/expand category';
+  togg.onclick=()=>toggleCatCollapse(c.id);
+
+  const title=document.createElement('strong');
+  title.textContent=c.name;
+
+  const colorInput=document.createElement('input');
+  colorInput.type='color';
+  colorInput.className='color-mini';
+  colorInput.title='Category color';
+  colorInput.value=c.color||'#4f46e5';
+  colorInput.oninput=(e)=>recolorCategoryFromInput(c.id, e.target.value);
+
+  left.append(togg,title,colorInput);
+
+  const activeCount=c.tags.reduce((acc,t)=>acc+(selected.has(t)?1:0),0);
+  const stats=document.createElement('span');
+  stats.className='stat';
+  stats.textContent=`${c.tags.length} tags | ${activeCount} active`;
+
+  const pin=document.createElement('span');
+  pin.className='pin';
+  pin.textContent=c.pinned?'📌':'📍';
+  pin.title='Pin/unpin';
+  pin.onclick=()=>togglePin(c.id);
+
+  const lockBtn=document.createElement('button');
+  lockBtn.className='secondary';
+  lockBtn.textContent=c.locked?'Unlock':'Lock';
+  lockBtn.onclick=()=>toggleLock(c.id);
+
+  const renameBtn=document.createElement('button');
+  renameBtn.className='ghost';
+  renameBtn.textContent='Rename';
+  renameBtn.onclick=()=>renameCategory(c.id);
+
+  const expTxt=document.createElement('button');
+  expTxt.className='secondary';
+  expTxt.textContent='Export TXT';
+  expTxt.onclick=()=>exportCategoryTXT(c.id);
+
+  const expJson=document.createElement('button');
+  expJson.className='secondary';
+  expJson.textContent='Export JSON';
+  expJson.onclick=()=>exportCategoryJSON(c.id);
+
+  const selAll=document.createElement('button');
+  selAll.className='ghost';
+  selAll.textContent='Select All';
+  selAll.onclick=()=>selectAllCategory(c.id);
+
+  const desel=document.createElement('button');
+  desel.className='ghost';
+  desel.textContent='Deselect Category';
+  desel.onclick=()=>deselectCategory(c.id);
+
+  const delBtn=document.createElement('button');
+  delBtn.className='danger';
+  delBtn.textContent='Delete Category';
+  delBtn.onclick=()=>confirmDeleteCategory(c.id);
+
+  h.append(left,stats,pin,lockBtn,renameBtn,expTxt,expJson,selAll,desel,delBtn);
+  box.appendChild(h);
+
+  const catBody=document.createElement('div');
+  catBody.className='cat-body';
+
+  const tags=document.createElement('div');
+  tags.className='tags';
+  if(c.locked) tags.classList.add('locked');
+
+  const catSelected=[];
+
+  c.tags.forEach((t,i)=>{
+    if(s && !t.toLowerCase().includes(s)) return;
+    if(rx && !rx.test(t)) return;
+
+    const tag=document.createElement('div');
+    tag.className='tag';
+    tag.textContent=t;
+    tag.draggable=!c.locked;
+
+    if(selected.has(t)){tag.classList.add('selected');catSelected.push(t);}
+
+    const markSet=deleteMarks.get(c.id);
+    if(markSet && markSet.has(t)) tag.classList.add('mark');
+
+    tag.onclick=()=>{
+      if(deleteMode){
+        let set=deleteMarks.get(c.id);
+        if(!set){set=new Set();deleteMarks.set(c.id,set);}
+        if(set.has(t)) set.delete(t); else set.add(t);
+        updateMarkedCount();
+        render();
+        return;
+      }
+      mutate(()=>{
+        if(selected.has(t)) selected.delete(t);
+        else selected.add(t);
+        if(state.ui.autoCollapseOnSelect && !c.collapsed) c.collapsed=true;
+      });
+    };
+
+    if(!c.locked){
+      tag.ondragstart=e=>e.dataTransfer.setData('i',i);
+      tag.ondragover=e=>e.preventDefault();
+      tag.ondrop=e=>{
+        mutate(()=>{
+          const from=+e.dataTransfer.getData('i');
+          const temp=c.tags[from];
+          c.tags.splice(from,1);
+          c.tags.splice(i,0,temp);
+        });
+      };
+    }
+
+    tags.appendChild(tag);
+  });
+
+  catBody.appendChild(tags);
+
+  const addWrap=document.createElement('div');
+  const add=document.createElement('input');
+  add.placeholder='Add tag';
+  add.disabled=c.locked;
+  add.setAttribute('list','tagSuggestions');
+  add.onkeydown=e=>{ if(e.key==='Enter') addTag(c.id, add.value); };
+  addWrap.appendChild(add);
+  catBody.appendChild(addWrap);
+
+  const out=document.createElement('textarea');
+  out.className='cat-output';
+  out.readOnly=true;
+  out.placeholder='Selected in this category';
+  out.value=catSelected.join(', ');
+  catBody.appendChild(out);
+
+  box.appendChild(catBody);
+  return box;
+}
+
+// Init
+applyTheme();
+initTopbar();
+saveState();
+render();
+</script>
+</body>
+</html>
