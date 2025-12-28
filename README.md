@@ -1,5 +1,5 @@
-# Tag-Category-Selector
-A privacy-first, offline-capable tag management web app with categories, groups, powerful filtering, undo support, and optional AI-assisted organization.
+# Tag-app
+A privacy-first, offline-capable tag management web app with categories, groups, powerful filtering, undo support, and optional AI-assisted organisation.
 
 Tag Category Selector is a powerful, offline-first web app for organising large tag libraries into categories and groups.  
 It is designed for workflows that require **precision, flexibility, and safety**, with full undo support and no forced cloud or AI usage.
